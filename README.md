@@ -1,12 +1,15 @@
 # 🛡️ SSLGuard — Enterprise SSL/TLS Certificate Intelligence Platform
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF.svg?logo=githubactions&logoColor=white)]()
+[![Docker](https://img.shields.io/badge/docker-compose%20ready-2496ED.svg?logo=docker&logoColor=white)]()
 [![Backend](https://img.shields.io/badge/backend-Spring%20Boot%203.2-blue.svg)]()
 [![Java](https://img.shields.io/badge/java-17%2B-orange.svg)]()
 [![Frontend](https://img.shields.io/badge/frontend-React%2019%20%7C%20TypeScript-61dafb.svg)]()
 [![Database](https://img.shields.io/badge/database-PostgreSQL%2018-336791.svg)]()
 [![Styling](https://img.shields.io/badge/styling-Tailwind%20CSS%20v4-38bdf8.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
+
 
 > **SSLGuard** is a modern, enterprise-grade cybersecurity platform that prevents unexpected domain downtime by continuously evaluating X.509 certificate trust chains, analyzing TLS protocols and cipher suites, and automating proactive expiration defense.
 
@@ -77,26 +80,53 @@ flowchart LR
 
 ---
 
+---
+
 ## 🚀 Getting Started
 
-### Prerequisites
+### Option A: 🐳 One-Click Docker Compose (Fastest & Recommended)
+
+Run the entire platform (PostgreSQL, Spring Boot backend, and React/Nginx frontend) with a single command:
+
+```bash
+# 1. Clone repository
+git clone https://github.com/Akshay-27-jain/SSLGuard-SSL-TLS-Certificate-Intelligence-Platform.git
+cd SSLGuard-SSL-TLS-Certificate-Intelligence-Platform
+
+# 2. Configure environment (optional, defaults provided)
+cp .env.example .env
+
+# 3. Launch the container cluster
+docker compose up -d --build
+```
+
+* **Frontend Web Application**: [http://localhost](http://localhost) (Port 80)
+* **Backend API & Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+* **PostgreSQL Database**: `localhost:5432` (database: `sslchecker`)
+
+To stop the containers:
+```bash
+docker compose down
+```
+
+---
+
+### Option B: 💻 Local Manual Development Setup
+
+#### Prerequisites
 * **Java**: JDK 17 or higher (`java -version`)
 * **Node.js**: v18 or higher (`node -v`)
 * **PostgreSQL**: PostgreSQL 14+ running on port `5432` with a database named `sslchecker`
 * **Maven**: 3.8+ (or use included wrapper)
 
----
-
-### 1. Database Setup
+#### 1. Database Setup
 
 Create the PostgreSQL database:
 ```sql
 CREATE DATABASE sslchecker;
 ```
 
----
-
-### 2. Environment Configuration
+#### 2. Environment Configuration
 
 Copy the example environment file and configure your credentials:
 ```bash
@@ -112,21 +142,17 @@ cp .env.example .env
 | `SPRING_MAIL_USERNAME` | SMTP alert email address | `your-email@gmail.com` |
 | `SPRING_MAIL_PASSWORD` | SMTP application password | `your-app-password` |
 
----
-
-### 3. Backend Setup
+#### 3. Backend Setup
 
 ```bash
 cd ssl-checker-backend
-mvn clean install
+mvn clean test
 mvn spring-boot:run
 ```
 * Backend server starts on **`http://localhost:8080`**
 * Interactive Swagger API documentation: **`http://localhost:8080/swagger-ui.html`**
 
----
-
-### 4. Frontend Setup
+#### 4. Frontend Setup
 
 ```bash
 cd ssl-checker-frontend
@@ -134,7 +160,18 @@ npm install
 npm run dev
 ```
 * Frontend client starts on **`http://localhost:5173`**
-* Production build: `npm run build`
+* Production build & bundle splitting: `npm run build`
+* Oxlint code verification: `npm run lint`
+
+---
+
+## 🔄 CI/CD Pipeline
+
+The repository includes an enterprise-grade GitHub Actions CI/CD workflow (`.github/workflows/ci.yml`):
+* **Backend Job**: Automatically sets up Eclipse Temurin JDK 17, executes isolated JUnit/Spring Boot integration tests with in-memory H2, and verifies Maven artifact packaging.
+* **Frontend Job**: Sets up Node.js 20, runs `oxlint` lint checks, runs TypeScript compilation (`tsc -b`), and verifies production Vite bundle splitting.
+* **Docker Validation**: Automatically checks Docker Compose schema validity on every push and pull request.
+
 
 ---
 
