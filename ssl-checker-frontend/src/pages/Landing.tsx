@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Shield, Search, Bell, CheckCircle2, ArrowRight,
+  Shield, Search, Bell, ArrowRight,
   Sparkles, Globe, Terminal, RefreshCw, Key,
-  Sun, Moon, Server, ArrowUpRight, Menu, X
+  Sun, Moon, Server, Menu, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '../components/ui/Logo';
@@ -88,8 +88,8 @@ export default function Landing() {
     },
     {
       icon: Server,
-      title: "PostgreSQL 18 & REST API",
-      description: "High-performance Spring Boot 3.2 backend with relational persistence and OpenAPI/Swagger docs for seamless CI/CD pipeline hooks.",
+      title: "Enterprise Architecture & API",
+      description: "High-performance Spring Boot 3.2 backend with multi-tenant relational persistence and secure endpoints for seamless CI/CD pipeline hooks.",
       color: "from-slate-700 via-slate-800 to-indigo-900",
       tag: "Architecture"
     }
@@ -131,10 +131,6 @@ export default function Landing() {
             <a href="#features" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Features</a>
             <a href="#demo" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Live Scanner</a>
             <a href="#workflow" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">How It Works</a>
-            <a href="http://localhost:8080/swagger-ui.html" target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-              <span>API Specs</span>
-              <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
-            </a>
           </nav>
 
           {/* Action CTAs */}
@@ -202,15 +198,6 @@ export default function Landing() {
                   className="px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 >
                   How It Works
-                </a>
-                <a
-                  href="http://localhost:8080/swagger-ui.html"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center justify-between px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                >
-                  <span>API Documentation</span>
-                  <ArrowUpRight className="w-4 h-4" />
                 </a>
               </nav>
 
@@ -294,27 +281,6 @@ export default function Landing() {
               <span>Test Live SSL Scanner</span>
             </a>
           </motion.div>
-
-          {/* Trust Metrics Pill */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="pt-6 flex items-center justify-center gap-6 sm:gap-10 text-xs font-bold text-slate-500 dark:text-slate-400 flex-wrap"
-          >
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span>Java 17+ SSLSocket Handshake</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span>RFC 5280 / TLS 1.3 Certified</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-              <span>PostgreSQL 18 Multi-Tenant Persistence</span>
-            </div>
-          </motion.div>
         </div>
 
         {/* Interactive Live Scanner Showcase Card */}
@@ -323,7 +289,7 @@ export default function Landing() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.5 }}
-          className="mt-16 max-w-4xl mx-auto glass-panel rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden"
+          className="mt-12 sm:mt-14 max-w-4xl mx-auto glass-panel rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden"
         >
           {/* Glowing Top Border */}
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600" />
@@ -337,13 +303,13 @@ export default function Landing() {
                 Audit Any Hostname Right Now
               </h3>
             </div>
-            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-full border border-emerald-500/20">
+            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-full border border-emerald-500/20 self-start sm:self-auto shrink-0">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              TLS Engine Active on Port 8080
+              TLS Engine Active
             </div>
           </div>
 
-          <form onSubmit={handleQuickScan} className="flex flex-col sm:flex-row gap-3">
+          <form onSubmit={handleQuickScan} className="flex flex-col sm:flex-row gap-3 items-stretch">
             <div className="relative flex-1">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none">
                 <Globe className="w-5 h-5" />
@@ -354,13 +320,13 @@ export default function Landing() {
                 value={quickDomain}
                 onChange={e => setQuickDomain(e.target.value)}
                 placeholder="Enter domain (e.g. google.com, apple.com)"
-                className="input-field input-with-icon-left text-base text-slate-900 dark:text-white font-semibold"
+                className="input-field input-with-icon-left h-[52px] text-base text-slate-900 dark:text-white font-semibold"
               />
             </div>
             <button
               type="submit"
               disabled={loading || !quickDomain.trim()}
-              className="btn-primary py-3.5 px-8 text-base shadow-lg shadow-blue-500/30 cursor-pointer"
+              className="btn-primary h-[52px] px-8 text-base shadow-lg shadow-blue-500/30 cursor-pointer whitespace-nowrap"
             >
               {loading ? (
                 <RefreshCw className="w-5 h-5 animate-spin" />
@@ -372,14 +338,14 @@ export default function Landing() {
           </form>
 
           {/* Quick Click Suggestions */}
-          <div className="flex items-center gap-2 flex-wrap mt-3 text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-semibold">Try:</span>
+          <div className="flex items-center gap-2 flex-wrap mt-3.5 text-xs">
+            <span className="text-slate-500 dark:text-slate-400 font-semibold select-none">Try:</span>
             {['google.com', 'github.com', 'cloudflare.com', 'microsoft.com'].map(target => (
               <button
                 key={target}
                 type="button"
                 onClick={() => setQuickDomain(target)}
-                className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700 font-semibold transition-colors cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-600 border border-slate-200 dark:border-slate-700 font-semibold transition-all cursor-pointer text-xs"
               >
                 {target}
               </button>
@@ -389,30 +355,48 @@ export default function Landing() {
           {/* Scan Result Box */}
           {scanResult && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="mt-6 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 space-y-4"
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.25 }}
+              className="mt-6 p-6 sm:p-7 rounded-2xl bg-slate-50/90 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 space-y-5"
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 text-emerald-500 font-black text-2xl flex items-center justify-center border border-emerald-500/30 shadow-sm">
+                  <div className={cn(
+                    "w-14 h-14 rounded-2xl font-black text-2xl flex items-center justify-center border shadow-sm shrink-0",
+                    (scanResult.grade === 'A+' || scanResult.grade === 'A') && "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+                    scanResult.grade === 'B' && "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30",
+                    scanResult.grade === 'C' && "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
+                    (scanResult.grade === 'D' || scanResult.grade === 'F') && "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30",
+                    !scanResult.grade && "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                  )}>
                     {scanResult.grade || 'A'}
                   </div>
-                  <div>
-                    <h4 className="font-extrabold text-lg text-slate-900 dark:text-white flex items-center gap-2">
-                      <span>{quickDomain}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
-                        Valid TLS
+                  <div className="min-w-0">
+                    <h4 className="font-extrabold text-lg text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+                      <span className="truncate">{quickDomain}</span>
+                      <span className={cn(
+                        "text-xs px-2.5 py-0.5 rounded-full font-bold border shrink-0",
+                        scanResult.status === 'EXPIRED' || scanResult.daysRemaining <= 0
+                          ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
+                          : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                      )}>
+                        {scanResult.status === 'EXPIRED' || scanResult.daysRemaining <= 0 ? 'Expired TLS' : 'Valid TLS'}
                       </span>
                     </h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
                       Issued by: <span className="font-bold text-slate-700 dark:text-slate-200">{scanResult.issuerOrg || scanResult.issuer}</span>
                     </p>
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                <div className="text-left sm:text-right shrink-0">
+                  <div className={cn(
+                    "text-2xl sm:text-3xl font-black tracking-tight",
+                    scanResult.daysRemaining <= 7 ? "text-rose-600 dark:text-rose-400" :
+                    scanResult.daysRemaining <= 30 ? "text-amber-600 dark:text-amber-400" :
+                    "text-emerald-600 dark:text-emerald-400"
+                  )}>
                     {scanResult.daysRemaining} Days
                   </div>
                   <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Until Expiration</span>
@@ -420,22 +404,22 @@ export default function Landing() {
               </div>
 
               {/* Progress and properties */}
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-700 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-700/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                 <div>
-                  <span className="text-slate-400 block font-medium">Valid From</span>
+                  <span className="text-slate-400 dark:text-slate-400 block font-medium mb-1">Valid From</span>
                   <span className="font-bold text-slate-800 dark:text-slate-200">{formatDate(scanResult.validFrom)}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block font-medium">Expires On</span>
+                  <span className="text-slate-400 dark:text-slate-400 block font-medium mb-1">Expires On</span>
                   <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatDate(scanResult.validUntil)}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block font-medium">Signature</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200 font-mono text-[11px]">{scanResult.signatureAlgorithm}</span>
+                  <span className="text-slate-400 dark:text-slate-400 block font-medium mb-1">Signature</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 font-mono text-[11px] truncate block" title={scanResult.signatureAlgorithm}>{scanResult.signatureAlgorithm}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block font-medium">Key Strength</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200 font-mono text-[11px]">{scanResult.keySize} bits</span>
+                  <span className="text-slate-400 dark:text-slate-400 block font-medium mb-1">Key Strength</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 font-mono text-[11px] block">{scanResult.keySize} bits</span>
                 </div>
               </div>
             </motion.div>
@@ -556,9 +540,8 @@ export default function Landing() {
           © 2026 SSL Guard. Production TLS & SSL Certificate Intelligence.
         </p>
         <div className="flex items-center gap-6 text-xs font-bold text-slate-600 dark:text-slate-400">
-          <Link to="/login" className="hover:text-blue-600">Sign In</Link>
-          <Link to="/register" className="hover:text-blue-600">Register</Link>
-          <a href="http://localhost:8080/swagger-ui.html" target="_blank" rel="noreferrer" className="hover:text-blue-600">API Documentation</a>
+          <Link to="/login" className="hover:text-blue-600 transition-colors">Sign In</Link>
+          <Link to="/register" className="hover:text-blue-600 transition-colors">Register</Link>
         </div>
       </footer>
     </div>
