@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Globe, Plus, RefreshCw, Trash2, CheckCircle2,
-  AlertTriangle, XCircle, Clock, ExternalLink, Search, Shield, X
+  AlertTriangle, XCircle, Clock, Search, Shield, X,
+  Eye
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { domainApi } from '../api/api';
 import { Domain, DomainRequest } from '../types';
 import {
@@ -12,6 +13,7 @@ import {
   getStatusColor, getStatusLabel, getDaysLabel
 } from '../utils/helpers';
 import toast from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 
 interface AddDomainModalProps {
   open: boolean;
@@ -82,7 +84,7 @@ function AddDomainModal({ open, onClose, onAdd, loading }: AddDomainModalProps) 
                 id="domain-port"
                 type="number"
                 value={form.port}
-                onChange={e => setForm(f => ({ ...f, port: parseInt(e.target.value) }))}
+                onChange={e => setForm(f => ({ ...f, port: parseInt(e.target.value) || 443 }))}
                 className="input-field font-medium text-slate-900 dark:text-white"
                 min="1" max="65535"
               />
@@ -93,7 +95,7 @@ function AddDomainModal({ open, onClose, onAdd, loading }: AddDomainModalProps) 
                 id="domain-alert-days"
                 type="number"
                 value={form.alertDaysBefore}
-                onChange={e => setForm(f => ({ ...f, alertDaysBefore: parseInt(e.target.value) }))}
+                onChange={e => setForm(f => ({ ...f, alertDaysBefore: parseInt(e.target.value) || 30 }))}
                 className="input-field font-medium text-slate-900 dark:text-white"
                 min="1" max="365"
               />
@@ -104,7 +106,7 @@ function AddDomainModal({ open, onClose, onAdd, loading }: AddDomainModalProps) 
             <label htmlFor="domain-notes" className="label cursor-pointer">Notes & Purpose (optional)</label>
             <textarea
               id="domain-notes"
-              value={form.notes}
+              value={form.notes || ''}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               placeholder="e.g. Production API Gateway, renewal handled via Let's Encrypt"
               className="input-field resize-none h-20 text-slate-900 dark:text-white"
@@ -163,7 +165,9 @@ function DomainStatusBadge({ status }: { status: string }) {
 export default function Domains() {
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'VALID' | 'EXPIRING_SOON' | 'EXPIRED' | 'ISSUES'>('ALL');
   const [checkingId, setCheckingId] = useState<string | null>(null);
+  const [selectedDomain, setSelectedDomain] = useState<Domain | null>(null);
   const queryClient = useQueryClient();
 
   const { data: domains = [], isLoading } = useQuery<Domain[]>({
@@ -192,6 +196,7 @@ export default function Domains() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['domains'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+      if (selectedDomain?.id) setSelectedDomain(null);
       toast.success('Domain removed from monitor');
     },
     onError: () => toast.error('Failed to delete domain'),
@@ -211,10 +216,23 @@ export default function Domains() {
     }
   };
 
-  const filtered = domains.filter(d =>
-    d.hostname.toLowerCase().includes(search.toLowerCase()) ||
-    (d.notes || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const countValid = domains.filter(d => d.status === 'VALID').length;
+  const countExpiring = domains.filter(d => d.status === 'EXPIRING_SOON').length;
+  const countExpired = domains.filter(d => d.status === 'EXPIRED').length;
+  const countIssues = domains.filter(d => d.status === 'INVALID' || d.status === 'UNREACHABLE').length;
+
+  const filtered = domains.filter(d => {
+    const matchesSearch = d.hostname.toLowerCase().includes(search.toLowerCase()) ||
+      (d.notes || '').toLowerCase().includes(search.toLowerCase());
+    
+    if (!matchesSearch) return false;
+
+    if (statusFilter === 'VALID') return d.status === 'VALID';
+    if (statusFilter === 'EXPIRING_SOON') return d.status === 'EXPIRING_SOON';
+    if (statusFilter === 'EXPIRED') return d.status === 'EXPIRED';
+    if (statusFilter === 'ISSUES') return d.status === 'INVALID' || d.status === 'UNREACHABLE';
+    return true;
+  });
 
   return (
     <motion.div
@@ -237,23 +255,58 @@ export default function Domains() {
         </div>
         <button onClick={() => setModalOpen(true)} className="btn-primary shadow-lg shadow-blue-500/25 cursor-pointer">
           <Plus className="w-4 h-4" />
-          Add Domain
+          <span>Add Domain</span>
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="glass-panel rounded-2xl p-3 shadow-md">
-        <div className="relative">
-          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-            <Search className="w-4 h-4" />
+      {/* Filter Tabs & Search Bar */}
+      <div className="glass-panel rounded-2xl p-4 shadow-md space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+              <Search className="w-4 h-4" />
+            </div>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search domains by hostname or notes..."
+              className="input-field input-with-icon-left h-[44px] text-slate-900 dark:text-white font-medium"
+            />
           </div>
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search domains by hostname or notes..."
-            className="input-field input-with-icon-left py-2.5 text-slate-900 dark:text-white font-medium"
-          />
+
+          {/* Status Filter Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            {[
+              { id: 'ALL', label: 'All', count: domains.length },
+              { id: 'VALID', label: 'Healthy', count: countValid },
+              { id: 'EXPIRING_SOON', label: 'Expiring', count: countExpiring },
+              { id: 'EXPIRED', label: 'Expired', count: countExpired },
+              { id: 'ISSUES', label: 'Issues', count: countIssues },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setStatusFilter(tab.id as any)}
+                className={cn(
+                  "px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5",
+                  statusFilter === tab.id
+                    ? "bg-blue-600 text-white shadow-xs shadow-blue-500/30"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                )}
+              >
+                <span>{tab.label}</span>
+                <span className={cn(
+                  "px-1.5 py-0.2 rounded-md text-[10px]",
+                  statusFilter === tab.id
+                    ? "bg-white/20 text-white font-black"
+                    : "bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
+                )}>
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -277,13 +330,15 @@ export default function Domains() {
           <div className="w-16 h-16 rounded-3xl bg-blue-500/10 text-blue-500 flex items-center justify-center mb-4">
             <Shield className="w-8 h-8" />
           </div>
-          <h3 className="font-bold text-lg text-slate-900 dark:text-white">No domains found</h3>
+          <h3 className="font-bold text-lg text-slate-900 dark:text-white">No matching domains found</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm">
-            Add a domain to initiate real-time cryptographic monitoring and alerts.
+            {search || statusFilter !== 'ALL'
+              ? 'Try adjusting your search criteria or filter status tab.'
+              : 'Add a domain to initiate real-time cryptographic monitoring and alerts.'}
           </p>
           <button onClick={() => setModalOpen(true)} className="btn-primary mt-5 cursor-pointer">
             <Plus className="w-4 h-4" />
-            Add First Domain
+            <span>Add First Domain</span>
           </button>
         </div>
       ) : (
@@ -310,16 +365,13 @@ export default function Domains() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <a
-                      href={`https://${domain.hostname}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5 transition-colors text-base"
+                    <button
+                      onClick={() => setSelectedDomain(domain)}
+                      className="font-bold text-slate-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1.5 transition-colors text-base text-left cursor-pointer"
                     >
                       <span>{domain.hostname}</span>
                       {domain.port !== 443 && <span className="text-slate-400 font-normal text-xs">:{domain.port}</span>}
-                      <ExternalLink className="w-3.5 h-3.5 opacity-50" />
-                    </a>
+                    </button>
                     <DomainStatusBadge status={domain.status} />
                   </div>
 
@@ -329,7 +381,7 @@ export default function Domains() {
                       {domain.lastChecked ? formatRelativeTime(domain.lastChecked) : 'Pending check'}
                     </span>
                     {domain.issuer && (
-                      <span>· {domain.issuer}</span>
+                      <span className="truncate max-w-xs">· {domain.issuer}</span>
                     )}
                     {domain.validUntil && (
                       <span>· Expires {formatDate(domain.validUntil)}</span>
@@ -356,6 +408,13 @@ export default function Domains() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => setSelectedDomain(domain)}
+                    className="p-2.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-all cursor-pointer border border-transparent hover:border-blue-500/20"
+                    title="Inspect certificate details"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
                   <button
                     onClick={() => handleCheckNow(domain.id)}
                     disabled={checkingId === domain.id}
@@ -387,6 +446,124 @@ export default function Domains() {
           ))}
         </div>
       )}
+
+      {/* Certificate Details Drawer / Modal */}
+      <AnimatePresence>
+        {selectedDomain && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" onClick={() => setSelectedDomain(null)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 w-full max-w-xl z-10 space-y-6 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className={cn(
+                    "w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg border",
+                    selectedDomain.grade === 'A+' || selectedDomain.grade === 'A' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' :
+                    selectedDomain.grade === 'B' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30' :
+                    selectedDomain.grade === 'C' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30' :
+                    'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                  )}>
+                    {selectedDomain.grade || '?'}
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>{selectedDomain.hostname}</span>
+                      <DomainStatusBadge status={selectedDomain.status} />
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      Port {selectedDomain.port} · Added {formatDate(selectedDomain.createdAt)}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedDomain(null)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Expiry Overview Card */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block">Expiration Schedule</span>
+                  <span className="font-bold text-sm text-slate-900 dark:text-white mt-0.5 block">
+                    {selectedDomain.validUntil ? formatDate(selectedDomain.validUntil) : 'Pending inspection'}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className={cn(
+                    "text-2xl font-black",
+                    (selectedDomain.daysUntilExpiry ?? 0) <= 7 ? 'text-rose-600' :
+                    (selectedDomain.daysUntilExpiry ?? 0) <= 30 ? 'text-amber-600' : 'text-emerald-600'
+                  )}>
+                    {selectedDomain.daysUntilExpiry !== null ? selectedDomain.daysUntilExpiry : '—'}
+                  </span>
+                  <span className="text-xs font-semibold text-slate-400 block">Days Left</span>
+                </div>
+              </div>
+
+              {/* Details List */}
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Certificate Issuer</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{selectedDomain.issuer || 'Pending'}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Last Audited</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">
+                    {selectedDomain.lastChecked ? formatRelativeTime(selectedDomain.lastChecked) : 'Never'}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Warning Threshold</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{selectedDomain.alertDaysBefore} days before expiry</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Email Alerts</span>
+                  <span className={cn("font-bold", selectedDomain.emailAlertsEnabled ? "text-emerald-600" : "text-slate-400")}>
+                    {selectedDomain.emailAlertsEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                {selectedDomain.notes && (
+                  <div className="py-2">
+                    <span className="text-slate-500 dark:text-slate-400 font-medium block mb-1">Notes</span>
+                    <p className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 text-xs font-medium text-slate-700 dark:text-slate-300">
+                      {selectedDomain.notes}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions Footer */}
+              <div className="flex items-center gap-3 pt-3">
+                <Link
+                  to="/checker"
+                  className="btn-secondary flex-1 justify-center text-xs font-bold py-3"
+                  onClick={() => setSelectedDomain(null)}
+                >
+                  <Search className="w-4 h-4 text-blue-500" />
+                  <span>Full Live Inspection</span>
+                </Link>
+                <button
+                  onClick={() => {
+                    handleCheckNow(selectedDomain.id);
+                  }}
+                  disabled={checkingId === selectedDomain.id}
+                  className="btn-primary flex-1 justify-center text-xs font-bold py-3 cursor-pointer"
+                >
+                  <RefreshCw className={cn("w-4 h-4", checkingId === selectedDomain.id && "animate-spin")} />
+                  <span>Re-verify Now</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <AddDomainModal
         open={modalOpen}

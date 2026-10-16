@@ -87,12 +87,12 @@ export default function SslChecker() {
         className="glass-panel rounded-3xl p-6 sm:p-8 shadow-xl"
       >
         <form onSubmit={handleCheck} className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <label htmlFor="check-hostname" className="label cursor-pointer">Domain Name or URL</label>
+          <div className="flex flex-col sm:flex-row gap-3 items-end">
+            <div className="flex-1 w-full">
+              <label htmlFor="check-hostname" className="label cursor-pointer">Domain Name or Hostname</label>
               <div className="relative">
                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-                  <Globe className="w-4 h-4" />
+                  <Globe className="w-5 h-5" />
                 </div>
                 <input
                   id="check-hostname"
@@ -100,48 +100,48 @@ export default function SslChecker() {
                   required
                   value={hostname}
                   onChange={(e) => setHostname(e.target.value)}
-                  placeholder="e.g. google.com, github.com, or https://example.com"
-                  className="input-field input-with-icon-left text-slate-900 dark:text-white font-medium"
+                  placeholder="e.g. google.com, github.com, or cloudflare.com"
+                  className="input-field input-with-icon-left h-[50px] text-slate-900 dark:text-white font-semibold text-base"
                 />
               </div>
             </div>
-            <div className="w-full sm:w-28">
+            <div className="w-full sm:w-24">
               <label htmlFor="check-port" className="label cursor-pointer">Port</label>
               <input
                 id="check-port"
                 type="number"
                 value={port}
                 onChange={(e) => setPort(e.target.value)}
-                className="input-field text-slate-900 dark:text-white font-medium"
+                className="input-field h-[50px] text-center text-slate-900 dark:text-white font-semibold text-base"
                 min="1"
                 max="65535"
               />
             </div>
-            <div className="flex items-end">
+            <div className="w-full sm:w-auto">
               <button
                 type="submit"
                 disabled={loading || !hostname.trim()}
-                className="btn-primary w-full sm:w-auto h-[46px] px-8 text-base shadow-lg shadow-blue-600/30 cursor-pointer"
+                className="btn-primary w-full sm:w-auto h-[50px] px-8 text-base shadow-lg shadow-blue-600/30 cursor-pointer whitespace-nowrap"
               >
                 {loading ? (
                   <RefreshCw className="w-5 h-5 animate-spin" />
                 ) : (
                   <Search className="w-5 h-5" />
                 )}
-                <span>{loading ? 'Inspecting...' : 'Analyze'}</span>
+                <span>{loading ? 'Inspecting...' : 'Analyze Handshake'}</span>
               </button>
             </div>
           </div>
 
           {/* Quick Examples */}
-          <div className="flex items-center gap-2 flex-wrap pt-1">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Popular targets:</span>
+          <div className="flex items-center gap-2 flex-wrap pt-2 text-xs">
+            <span className="font-semibold text-slate-500 dark:text-slate-400 select-none">Try:</span>
             {examples.map(example => (
               <button
                 key={example}
                 type="button"
                 onClick={() => { setHostname(example); }}
-                className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/40 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200/60 dark:border-slate-700/60 transition-all cursor-pointer"
+                className="font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-600 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer text-xs"
               >
                 {example}
               </button>
