@@ -223,208 +223,257 @@ export default function Landing() {
         </AnimatePresence>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative pt-16 pb-20 lg:pt-24 lg:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center space-y-6 max-w-4xl mx-auto">
-          {/* Eyebrow Pill */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-extrabold shadow-xs"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-            <span>Enterprise TLS & SSL Certificate Intelligence</span>
-          </motion.div>
-
-          {/* Hero Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl sm:text-6xl lg:text-7xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.1]"
-          >
-            Never Let An Expired SSL{' '}
-            <span className="text-gradient-primary">
-              Take Down Your Service
-            </span>
-          </motion.h1>
-
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-base sm:text-xl text-slate-600 dark:text-slate-300 font-medium max-w-2xl mx-auto leading-relaxed"
-          >
-            Automated background TLS handshakes, multi-tier chain validation, proactive 30-day expiration warnings, and real-time security grading.
-          </motion.p>
-
-          {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2"
-          >
-            <Link
-              to="/register"
-              className="w-full sm:w-auto btn-primary py-4 px-8 text-base shadow-xl shadow-blue-500/30 cursor-pointer"
-            >
-              <span>Start Free Monitoring</span>
-              <ArrowRight className="w-5 h-5 ml-1" />
-            </Link>
-            <a
-              href="#demo"
-              className="w-full sm:w-auto btn-secondary py-4 px-8 text-base cursor-pointer"
-            >
-              <Search className="w-4 h-4 text-blue-500" />
-              <span>Test Live SSL Scanner</span>
-            </a>
-          </motion.div>
-        </div>
-
-        {/* Interactive Live Scanner Showcase Card */}
-        <motion.div
-          id="demo"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.5 }}
-          className="mt-12 sm:mt-14 max-w-4xl mx-auto glass-panel rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden"
-        >
-          {/* Glowing Top Border */}
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600" />
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div>
-              <span className="text-xs font-black uppercase tracking-wider px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                Live Interactive Scanner
-              </span>
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-2">
-                Audit Any Hostname Right Now
-              </h3>
-            </div>
-            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3.5 py-1.5 rounded-full border border-emerald-500/20 self-start sm:self-auto shrink-0">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              TLS Engine Active
-            </div>
-          </div>
-
-          <form onSubmit={handleQuickScan} className="flex flex-col sm:flex-row gap-3 items-stretch">
-            <div className="relative flex-1">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none">
-                <Globe className="w-5 h-5" />
-              </div>
-              <input
-                type="text"
-                required
-                value={quickDomain}
-                onChange={e => setQuickDomain(e.target.value)}
-                placeholder="Enter domain (e.g. google.com, apple.com)"
-                className="input-field input-with-icon-left h-[52px] text-base text-slate-900 dark:text-white font-semibold"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading || !quickDomain.trim()}
-              className="btn-primary h-[52px] px-8 text-base shadow-lg shadow-blue-500/30 cursor-pointer whitespace-nowrap"
-            >
-              {loading ? (
-                <RefreshCw className="w-5 h-5 animate-spin" />
-              ) : (
-                <Search className="w-5 h-5" />
-              )}
-              <span>{loading ? 'Inspecting...' : 'Analyze Handshake'}</span>
-            </button>
-          </form>
-
-          {/* Quick Click Suggestions */}
-          <div className="flex items-center gap-2 flex-wrap mt-3.5 text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-semibold select-none">Try:</span>
-            {['google.com', 'github.com', 'cloudflare.com', 'microsoft.com'].map(target => (
-              <button
-                key={target}
-                type="button"
-                onClick={() => setQuickDomain(target)}
-                className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-600 border border-slate-200 dark:border-slate-700 font-semibold transition-all cursor-pointer text-xs"
-              >
-                {target}
-              </button>
-            ))}
-          </div>
-
-          {/* Scan Result Box */}
-          {scanResult && (
+      {/* Hero Section - 2-Column Enterprise Layout as per Design Board */}
+      <section className="relative pt-12 pb-16 lg:pt-16 lg:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          {/* Left Column (7 cols): Eyebrow, Headline, Subtitle, Inline Quick Scanner Form, Chips, CTAs */}
+          <div className="lg:col-span-7 space-y-6 text-left">
+            {/* Eyebrow Pill */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.98, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.25 }}
-              className="mt-6 p-6 sm:p-7 rounded-2xl bg-slate-50/90 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 space-y-5"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-extrabold shadow-xs"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className={cn(
-                    "w-14 h-14 rounded-2xl font-black text-2xl flex items-center justify-center border shadow-sm shrink-0",
-                    (scanResult.grade === 'A+' || scanResult.grade === 'A') && "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
-                    scanResult.grade === 'B' && "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30",
-                    scanResult.grade === 'C' && "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
-                    (scanResult.grade === 'D' || scanResult.grade === 'F') && "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30",
-                    !scanResult.grade && "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-                  )}>
-                    {scanResult.grade || 'A'}
+              <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+              <span>Enterprise TLS & SSL Certificate Intelligence</span>
+            </motion.div>
+
+            {/* Hero Headline */}
+            <motion.h1
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]"
+            >
+              Never Let An Expired SSL{' '}
+              <span className="text-gradient-primary">
+                Take Down Your Service
+              </span>
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-base sm:text-lg text-slate-600 dark:text-slate-300 font-medium max-w-xl leading-relaxed"
+            >
+              Automated background TLS handshakes, multi-tier chain validation, proactive 30-day expiration warnings, and real-time security grading.
+            </motion.p>
+
+            {/* Inline Live Scanner Form */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="pt-2 space-y-3"
+            >
+              <form onSubmit={handleQuickScan} className="flex flex-col sm:flex-row gap-2.5 items-stretch max-w-xl">
+                <div className="relative flex-1">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none">
+                    <Globe className="w-5 h-5" />
                   </div>
-                  <div className="min-w-0">
-                    <h4 className="font-extrabold text-lg text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
-                      <span className="truncate">{quickDomain}</span>
-                      <span className={cn(
-                        "text-xs px-2.5 py-0.5 rounded-full font-bold border shrink-0",
-                        scanResult.status === 'EXPIRED' || scanResult.daysRemaining <= 0
-                          ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
-                          : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                      )}>
-                        {scanResult.status === 'EXPIRED' || scanResult.daysRemaining <= 0 ? 'Expired TLS' : 'Valid TLS'}
-                      </span>
-                    </h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
-                      Issued by: <span className="font-bold text-slate-700 dark:text-slate-200">{scanResult.issuerOrg || scanResult.issuer}</span>
-                    </p>
+                  <input
+                    type="text"
+                    required
+                    value={quickDomain}
+                    onChange={e => setQuickDomain(e.target.value)}
+                    placeholder="Enter hostname (e.g. google.com)"
+                    className="input-field input-with-icon-left h-[52px] text-base text-slate-900 dark:text-white font-semibold shadow-xs"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading || !quickDomain.trim()}
+                  className="btn-primary h-[52px] px-7 text-base shadow-lg shadow-blue-500/30 cursor-pointer whitespace-nowrap"
+                >
+                  {loading ? (
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Search className="w-5 h-5" />
+                  )}
+                  <span>{loading ? 'Inspecting...' : 'Analyze Handshake'}</span>
+                </button>
+              </form>
+
+              {/* Suggestion Chips */}
+              <div className="flex items-center gap-2 flex-wrap text-xs">
+                <span className="text-slate-500 dark:text-slate-400 font-semibold select-none">Try:</span>
+                {['google.com', 'github.com', 'cloudflare.com', 'microsoft.com'].map(target => (
+                  <button
+                    key={target}
+                    type="button"
+                    onClick={() => setQuickDomain(target)}
+                    className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-600 border border-slate-200 dark:border-slate-700 font-semibold transition-all cursor-pointer text-xs"
+                  >
+                    {target}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* CTAs */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="flex items-center gap-4 pt-3 flex-wrap"
+            >
+              <Link
+                to="/register"
+                className="btn-primary py-3.5 px-7 text-sm font-bold shadow-xl shadow-blue-500/25 cursor-pointer"
+              >
+                <span>Start Free Monitoring</span>
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Link>
+              <Link
+                to="/login"
+                className="btn-secondary py-3.5 px-6 text-sm font-bold cursor-pointer"
+              >
+                <span>Sign In to Platform</span>
+              </Link>
+            </motion.div>
+          </div>
+
+          {/* Right Column (5 cols): Interactive Certificate Live Card */}
+          <div className="lg:col-span-5">
+            <motion.div
+              id="demo"
+              initial={{ opacity: 0, y: 25, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ delay: 0.25, duration: 0.5 }}
+              className="glass-panel rounded-3xl p-6 sm:p-7 shadow-2xl relative overflow-hidden border border-slate-200/90 dark:border-slate-800/90 backdrop-blur-xl"
+            >
+              {/* Glowing Top Border */}
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600" />
+
+              {/* Card Header */}
+              <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-200/80 dark:border-slate-800/80">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center font-black">
+                    <Shield className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm text-slate-900 dark:text-white">Live Audit Preview</h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Direct Port 443 Handshake</p>
                   </div>
                 </div>
-
-                <div className="text-left sm:text-right shrink-0">
-                  <div className={cn(
-                    "text-2xl sm:text-3xl font-black tracking-tight",
-                    scanResult.daysRemaining <= 7 ? "text-rose-600 dark:text-rose-400" :
-                    scanResult.daysRemaining <= 30 ? "text-amber-600 dark:text-amber-400" :
-                    "text-emerald-600 dark:text-emerald-400"
-                  )}>
-                    {scanResult.daysRemaining} Days
-                  </div>
-                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Until Expiration</span>
+                <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 shrink-0">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>TLS 1.3 Active</span>
                 </div>
               </div>
 
-              {/* Progress and properties */}
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-700/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                <div>
-                  <span className="text-slate-400 dark:text-slate-400 block font-medium mb-1">Valid From</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">{formatDate(scanResult.validFrom)}</span>
+              {/* Certificate Information Preview */}
+              <div className="pt-5 space-y-5">
+                {/* Domain & Grade */}
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className={cn(
+                      "w-14 h-14 rounded-2xl font-black text-2xl flex items-center justify-center border shadow-sm shrink-0",
+                      (!scanResult || scanResult.grade === 'A+' || scanResult.grade === 'A') && "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+                      scanResult?.grade === 'B' && "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30",
+                      scanResult?.grade === 'C' && "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
+                      (scanResult?.grade === 'D' || scanResult?.grade === 'F') && "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30"
+                    )}>
+                      {scanResult ? scanResult.grade : 'A+'}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-extrabold text-base text-slate-900 dark:text-white truncate">
+                          {quickDomain}
+                        </span>
+                        <span className="text-[11px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                          Valid TLS
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
+                        Issuer: <span className="font-semibold text-slate-700 dark:text-slate-300">{scanResult?.issuerOrg || scanResult?.issuer || 'Google Trust Services'}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
+                      {scanResult ? `${scanResult.daysRemaining}d` : '66d'}
+                    </div>
+                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Remaining</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-slate-400 dark:text-slate-400 block font-medium mb-1">Expires On</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatDate(scanResult.validUntil)}</span>
+
+                {/* Metadata Grid */}
+                <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-slate-400 block font-medium">Valid From</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">
+                      {scanResult ? formatDate(scanResult.validFrom) : 'Sep 29, 2026'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block font-medium">Expires On</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                      {scanResult ? formatDate(scanResult.validUntil) : 'Dec 22, 2026'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block font-medium">Signature</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200 font-mono text-[11px] truncate block">
+                      {scanResult ? scanResult.signatureAlgorithm : 'SHA256withECDSA'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block font-medium">Key Strength</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200 font-mono text-[11px] block">
+                      {scanResult ? `${scanResult.keySize} bits` : '256 bits (ECDSA)'}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-slate-400 dark:text-slate-400 block font-medium mb-1">Signature</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200 font-mono text-[11px] truncate block" title={scanResult.signatureAlgorithm}>{scanResult.signatureAlgorithm}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 dark:text-slate-400 block font-medium mb-1">Key Strength</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200 font-mono text-[11px] block">{scanResult.keySize} bits</span>
+
+                {/* Progress Bar */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    <span>Certificate Lifetime Remaining</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">Healthy (&gt;30d)</span>
+                  </div>
+                  <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5">
+                    <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 w-3/4" />
+                  </div>
                 </div>
               </div>
             </motion.div>
-          )}
-        </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4-Metric Highlights Strip */}
+      <section className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+          {[
+            { label: 'Socket Handshakes', value: '100%', sub: 'Direct TCP Socket 443' },
+            { label: 'Average Latency', value: '<200ms', sub: 'Real-Time Audit Speed' },
+            { label: 'Proactive Alert Window', value: '30 Days', sub: 'Zero-Downtime Defense' },
+            { label: 'RFC Compliance', value: 'RFC 5280', sub: 'PKI Trust Chain Validation' },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="glass-panel rounded-2xl p-5 text-center shadow-md hover:shadow-lg transition-all"
+            >
+              <div className="text-3xl font-black text-gradient-primary tracking-tight">
+                {stat.value}
+              </div>
+              <div className="text-xs font-bold text-slate-800 dark:text-slate-100 mt-1">
+                {stat.label}
+              </div>
+              <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">
+                {stat.sub}
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </section>
 
       {/* How It Works Section */}
