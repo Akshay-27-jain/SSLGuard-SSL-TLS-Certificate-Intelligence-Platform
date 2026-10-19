@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Logo } from '../components/ui/Logo';
 import { sslApi } from '../api/api';
 import { SslCertificate } from '../types';
-import { cn, formatDate } from '../utils/helpers';
+import { cn, formatDate, sanitizeDomainInput } from '../utils/helpers';
 import toast from 'react-hot-toast';
 
 export default function Landing() {
@@ -36,13 +36,14 @@ export default function Landing() {
 
   const handleQuickScan = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!quickDomain.trim()) return;
+    const { hostname: cleanHost, port: detectedPort } = sanitizeDomainInput(quickDomain);
+    if (!cleanHost) return;
 
     setLoading(true);
     try {
-      const res = await sslApi.checkSsl(quickDomain.trim(), 443);
+      const res = await sslApi.checkSsl(cleanHost, detectedPort || 443);
       setScanResult(res.data);
-      toast.success(`Verified SSL handshake for ${quickDomain.trim()}`);
+      toast.success(`Verified SSL handshake for ${cleanHost}`);
     } catch {
       toast.error('Could not connect to domain. Ensure port 443 is open.');
     } finally {

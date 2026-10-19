@@ -10,7 +10,7 @@ import { domainApi } from '../api/api';
 import { Domain, DomainRequest } from '../types';
 import {
   cn, formatRelativeTime, formatDate, getStatusBg,
-  getStatusColor, getStatusLabel, getDaysLabel
+  getStatusColor, getStatusLabel, getDaysLabel, sanitizeDomainInput
 } from '../utils/helpers';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
@@ -33,9 +33,29 @@ function AddDomainModal({ open, onClose, onAdd, loading }: AddDomainModalProps) 
 
   if (!open) return null;
 
+  const handleHostnameBlur = () => {
+    if (form.hostname) {
+      const { hostname: cleanHost, port: detectedPort } = sanitizeDomainInput(form.hostname);
+      setForm(f => ({
+        ...f,
+        hostname: cleanHost,
+        port: detectedPort !== 443 && f.port === 443 ? detectedPort : f.port
+      }));
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAdd(form);
+    const { hostname: cleanHost, port: detectedPort } = sanitizeDomainInput(form.hostname);
+    if (!cleanHost) {
+      toast.error('Please enter a valid domain or hostname');
+      return;
+    }
+    onAdd({
+      ...form,
+      hostname: cleanHost,
+      port: form.port || detectedPort || 443,
+    });
   };
 
   return (
@@ -72,9 +92,13 @@ function AddDomainModal({ open, onClose, onAdd, loading }: AddDomainModalProps) 
               required
               value={form.hostname}
               onChange={e => setForm(f => ({ ...f, hostname: e.target.value }))}
-              placeholder="e.g. app.mycompany.com"
+              onBlur={handleHostnameBlur}
+              placeholder="e.g. portfolio-project-4863.vercel.app"
               className="input-field font-medium text-slate-900 dark:text-white"
             />
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+              Protocols (https://) and trailing slashes are automatically trimmed.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3.5">
@@ -187,7 +211,14 @@ export default function Domains() {
       toast.success('Domain added and initial SSL handshake verified!');
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.error || 'Failed to add domain');
+      const msg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        (err.response?.status === 401 || err.response?.status === 403
+          ? 'Your session has expired. Please sign in again.'
+          : err.message) ||
+        'Failed to add domain';
+      toast.error(msg);
     },
   });
 

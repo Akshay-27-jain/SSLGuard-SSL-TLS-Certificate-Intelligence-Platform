@@ -22,13 +22,19 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for 401 handling
+// Response interceptor for 401/403 session expiration handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const url = error.config?.url || '';
+    const isAuthRoute = url.includes('/api/auth/login') || url.includes('/api/auth/register');
+
+    if ((status === 401 || status === 403) && !isAuthRoute) {
       useAuthStore.getState().logout();
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        window.location.href = '/login?expired=true';
+      }
     }
     return Promise.reject(error);
   }

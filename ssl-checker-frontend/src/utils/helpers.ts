@@ -103,9 +103,38 @@ export function getDaysLabel(days: number | null): string {
 }
 
 export function cleanHostname(input: string): string {
+  if (!input) return '';
   let hostname = input.trim().toLowerCase();
   if (hostname.startsWith('https://')) hostname = hostname.substring(8);
-  if (hostname.startsWith('http://')) hostname = hostname.substring(7);
+  else if (hostname.startsWith('http://')) hostname = hostname.substring(7);
   if (hostname.includes('/')) hostname = hostname.split('/')[0];
-  return hostname;
+  if (hostname.includes('?')) hostname = hostname.split('?')[0];
+  if (hostname.includes('#')) hostname = hostname.split('#')[0];
+  if (hostname.includes(':')) hostname = hostname.split(':')[0];
+  return hostname.trim();
 }
+
+export function sanitizeDomainInput(input: string): { hostname: string; port: number } {
+  if (!input) return { hostname: '', port: 443 };
+  let trimmed = input.trim();
+  
+  if (trimmed.startsWith('https://')) trimmed = trimmed.substring(8);
+  else if (trimmed.startsWith('http://')) trimmed = trimmed.substring(7);
+
+  if (trimmed.includes('/')) trimmed = trimmed.split('/')[0];
+  if (trimmed.includes('?')) trimmed = trimmed.split('?')[0];
+  if (trimmed.includes('#')) trimmed = trimmed.split('#')[0];
+
+  let port = 443;
+  if (trimmed.includes(':')) {
+    const parts = trimmed.split(':');
+    trimmed = parts[0];
+    const parsedPort = parseInt(parts[1], 10);
+    if (!isNaN(parsedPort) && parsedPort > 0 && parsedPort <= 65535) {
+      port = parsedPort;
+    }
+  }
+
+  return { hostname: trimmed.toLowerCase().trim(), port };
+}
+

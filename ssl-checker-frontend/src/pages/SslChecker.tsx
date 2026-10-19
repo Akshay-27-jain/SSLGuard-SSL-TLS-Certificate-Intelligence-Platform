@@ -7,7 +7,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { sslApi } from '../api/api';
 import { SslCertificate } from '../types';
-import { cn, formatDate, getStatusColor, getStatusLabel } from '../utils/helpers';
+import { cn, formatDate, getStatusColor, getStatusLabel, sanitizeDomainInput } from '../utils/helpers';
 import toast from 'react-hot-toast';
 
 export default function SslChecker() {
@@ -21,18 +21,21 @@ export default function SslChecker() {
 
   const handleCheck = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!hostname.trim()) return;
+    const { hostname: cleanHost, port: detectedPort } = sanitizeDomainInput(hostname);
+    if (!cleanHost) return;
 
     setLoading(true);
     setError(null);
     setResult(null);
 
+    const checkPort = parseInt(port) || detectedPort || 443;
+
     try {
-      const res = await sslApi.checkSsl(hostname.trim(), parseInt(port) || 443);
+      const res = await sslApi.checkSsl(cleanHost, checkPort);
       setResult(res.data);
-      toast.success(`SSL certificate analyzed for ${hostname.trim()}`);
+      toast.success(`SSL certificate analyzed for ${cleanHost}`);
     } catch (err: any) {
-      const msg = err.response?.data?.error || err.message || 'Failed to inspect SSL certificate';
+      const msg = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to inspect SSL certificate';
       setError(msg);
       toast.error(msg);
     } finally {

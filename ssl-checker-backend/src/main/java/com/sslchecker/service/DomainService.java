@@ -134,7 +134,10 @@ public class DomainService {
         if (hostname.startsWith("https://")) hostname = hostname.substring(8);
         if (hostname.startsWith("http://")) hostname = hostname.substring(7);
         if (hostname.contains("/")) hostname = hostname.split("/")[0];
-        return hostname;
+        if (hostname.contains("?")) hostname = hostname.split("\\?")[0];
+        if (hostname.contains("#")) hostname = hostname.split("#")[0];
+        if (hostname.contains(":")) hostname = hostname.split(":")[0];
+        return hostname.trim();
     }
 
     private DomainResponse toDomainResponse(Domain domain) {

@@ -20,6 +20,13 @@ export default function Login() {
     return document.documentElement.classList.contains('dark');
   });
 
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('expired') === 'true') {
+      toast.error('Your session has expired. Please sign in again.', { id: 'session-expired' });
+    }
+  }, []);
+
   const toggleTheme = () => {
     if (darkMode) {
       document.documentElement.classList.remove('dark');
