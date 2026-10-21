@@ -1,7 +1,9 @@
 package com.sslchecker.controller;
 
+import com.sslchecker.dto.request.ForgotPasswordRequest;
 import com.sslchecker.dto.request.LoginRequest;
 import com.sslchecker.dto.request.RegisterRequest;
+import com.sslchecker.dto.request.ResetPasswordRequest;
 import com.sslchecker.dto.response.AuthResponse;
 import com.sslchecker.model.User;
 import com.sslchecker.service.AuthService;
@@ -67,6 +69,53 @@ public class AuthController {
             ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request password reset email")
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            authService.forgotPassword(request.getEmail());
+            return ResponseEntity.ok(Map.of(
+                "message", "If an account exists for " + request.getEmail() + ", a password reset link has been dispatched to your inbox."
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password using token")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(request.getToken(), request.getNewPassword());
+            return ResponseEntity.ok(Map.of(
+                "message", "Password has been successfully updated. You may now log in with your new password."
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Failed to reset password: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/test-email")
+    @Operation(summary = "Test Gmail SMTP email delivery")
+    public ResponseEntity<Map<String, String>> testEmail(@RequestBody(required = false) Map<String, String> request) {
+        try {
+            String email = (request != null && request.containsKey("email")) ? request.get("email") : null;
+            authService.sendTestEmail(email);
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "Test email dispatched successfully to " + (email != null ? email : "jainakshay0804@gmail.com")
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "status", "error",
+                "message", "SMTP Delivery failed: " + e.getMessage()
+            ));
         }
     }
 }

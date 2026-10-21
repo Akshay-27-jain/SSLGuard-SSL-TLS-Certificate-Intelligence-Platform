@@ -36,6 +36,12 @@ public class User implements UserDetails {
     @Column(name = "is_active")
     private boolean isActive = true;
 
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    @Column(name = "reset_token_expiry")
+    private LocalDateTime resetTokenExpiry;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -68,6 +74,8 @@ public class User implements UserDetails {
         private String fullName;
         private Role role = Role.USER;
         private boolean isActive = true;
+        private String resetToken;
+        private LocalDateTime resetTokenExpiry;
 
         public Builder id(UUID id) { this.id = id; return this; }
         public Builder email(String email) { this.email = email; return this; }
@@ -75,6 +83,8 @@ public class User implements UserDetails {
         public Builder fullName(String fullName) { this.fullName = fullName; return this; }
         public Builder role(Role role) { this.role = role; return this; }
         public Builder isActive(boolean isActive) { this.isActive = isActive; return this; }
+        public Builder resetToken(String resetToken) { this.resetToken = resetToken; return this; }
+        public Builder resetTokenExpiry(LocalDateTime resetTokenExpiry) { this.resetTokenExpiry = resetTokenExpiry; return this; }
 
         public User build() {
             User user = new User();
@@ -84,6 +94,8 @@ public class User implements UserDetails {
             user.fullName = this.fullName;
             user.role = this.role;
             user.isActive = this.isActive;
+            user.resetToken = this.resetToken;
+            user.resetTokenExpiry = this.resetTokenExpiry;
             return user;
         }
     }
@@ -110,6 +122,12 @@ public class User implements UserDetails {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getResetToken() { return resetToken; }
+    public void setResetToken(String resetToken) { this.resetToken = resetToken; }
+
+    public LocalDateTime getResetTokenExpiry() { return resetTokenExpiry; }
+    public void setResetTokenExpiry(LocalDateTime resetTokenExpiry) { this.resetTokenExpiry = resetTokenExpiry; }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Bell, AlertTriangle, CheckCircle2, XCircle, Clock, Globe } from 'lucide-react';
+import { Bell, AlertTriangle, CheckCircle2, XCircle, Clock, Globe, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { domainApi } from '../api/api';
+import { domainApi, authApi } from '../api/api';
 import { Domain } from '../types';
 import { cn, formatDate } from '../utils/helpers';
+import toast from 'react-hot-toast';
 
 interface AlertSectionProps {
   title: string;
@@ -87,6 +88,8 @@ function AlertSection({
 }
 
 export default function Alerts() {
+  const [sendingTest, setSendingTest] = useState(false);
+
   const { data: domains = [], isLoading } = useQuery<Domain[]>({
     queryKey: ['domains'],
     queryFn: async () => (await domainApi.getAll()).data,
@@ -97,6 +100,18 @@ export default function Alerts() {
   const expired = domains.filter(d => d.daysUntilExpiry !== null && d.daysUntilExpiry < 0);
   const healthy = domains.filter(d => d.daysUntilExpiry !== null && d.daysUntilExpiry > 30);
 
+  const handleSendTestEmail = async () => {
+    setSendingTest(true);
+    try {
+      const res = await authApi.sendTestEmail();
+      toast.success(res.data.message || 'Test email dispatched to jainakshay0804@gmail.com!');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to send test email. Check server logs.');
+    } finally {
+      setSendingTest(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -105,16 +120,39 @@ export default function Alerts() {
       className="space-y-8"
     >
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-          <span className="p-2 rounded-2xl bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-            <Bell className="w-6 h-6" />
-          </span>
-          Alerts & Expiration Queue
-        </h1>
-        <p className="text-slate-600 dark:text-slate-300 font-medium text-sm mt-1">
-          Automated proactive alerts, multi-tier expiration warnings, and broadcast status
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <span className="p-2 rounded-2xl bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+              <Bell className="w-6 h-6" />
+            </span>
+            Alerts & Expiration Queue
+          </h1>
+          <p className="text-slate-600 dark:text-slate-300 font-medium text-sm mt-1">
+            Automated proactive alerts, multi-tier expiration warnings, and broadcast status
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSendTestEmail}
+            disabled={sendingTest}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+            title="Dispatch a test email to jainakshay0804@gmail.com via Gmail SMTP"
+          >
+            {sendingTest ? (
+              <>
+                <div className="w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <span>Sending Test Email...</span>
+              </>
+            ) : (
+              <>
+                <Mail className="w-4 h-4" />
+                <span>Send Test Alert Email</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Summary KPI Cards */}

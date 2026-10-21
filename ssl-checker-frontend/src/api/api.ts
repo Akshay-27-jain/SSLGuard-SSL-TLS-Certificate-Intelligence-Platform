@@ -28,11 +28,11 @@ api.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
     const url = error.config?.url || '';
-    const isAuthRoute = url.includes('/api/auth/login') || url.includes('/api/auth/register');
+    const isAuthRoute = url.includes('/api/auth/');
 
     if ((status === 401 || status === 403) && !isAuthRoute) {
       useAuthStore.getState().logout();
-      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register' && !window.location.pathname.startsWith('/reset-password')) {
         window.location.href = '/login?expired=true';
       }
     }
@@ -47,6 +47,12 @@ export const authApi = {
   login: (data: { email: string; password: string }) =>
     api.post('/api/auth/login', data),
   getMe: () => api.get('/api/auth/me'),
+  forgotPassword: (data: { email: string }) =>
+    api.post('/api/auth/forgot-password', data),
+  resetPassword: (data: { token: string; newPassword: string }) =>
+    api.post('/api/auth/reset-password', data),
+  sendTestEmail: (data?: { email?: string }) =>
+    api.post('/api/auth/test-email', data || {}),
 };
 
 // SSL API

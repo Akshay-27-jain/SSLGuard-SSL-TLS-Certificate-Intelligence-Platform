@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, CheckCircle2, Sun, Moon, Eye, EyeOff, Sparkles, ArrowLeft, ShieldCheck, Bell } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Mail, Lock, ArrowRight, CheckCircle2, Sun, Moon, Eye, EyeOff, Sparkles, ArrowLeft, ShieldCheck, Bell, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { authApi } from '../api/api';
 import { useAuthStore } from '../store/authStore';
 import { Logo } from '../components/ui/Logo';
@@ -15,6 +15,12 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuthStore();
+
+  // Forgot password modal state
+  const [forgotModalOpen, setForgotModalOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
 
   const [darkMode, setDarkMode] = useState(() => {
     return document.documentElement.classList.contains('dark');
@@ -61,6 +67,25 @@ export default function Login() {
     }
   };
 
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail) {
+      toast.error('Please enter your email address');
+      return;
+    }
+
+    setForgotLoading(true);
+    try {
+      await authApi.forgotPassword({ email: forgotEmail });
+      setForgotSuccess(true);
+      toast.success('Password reset link sent to your email!');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to dispatch reset email. Please try again.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
       {/* LEFT COLUMN: Visual Brand & Live Intelligence Card (Hidden on mobile, 50% on desktop) */}
@@ -100,52 +125,32 @@ export default function Login() {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="glass-panel rounded-3xl p-6 shadow-xl border border-slate-200/80 dark:border-slate-700/80 space-y-5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl"
+            className="p-6 rounded-3xl glass-card border border-white/80 dark:border-slate-800/80 shadow-2xl relative overflow-hidden backdrop-blur-xl"
           >
-            {/* Domain & Live Badge */}
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-12 h-12 rounded-2xl font-black text-xl flex items-center justify-center bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shrink-0">
-                  A+
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
-                      api.production.stripe.com
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
-                      Valid
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
-                    Issuer: <span className="font-semibold text-slate-700 dark:text-slate-300">Google Trust Services LLC</span>
-                  </p>
-                </div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <span className="text-xs font-bold tracking-wider text-slate-700 dark:text-slate-300 font-mono">
+                  api.sslguard.security
+                </span>
               </div>
-
-              <div className="text-right shrink-0">
-                <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">
-                  66d
-                </div>
-                <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">Remaining</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span>GRADE A+</span>
               </div>
             </div>
 
-            {/* Metadata Grid */}
-            <div className="p-3.5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 grid grid-cols-2 gap-3 text-xs">
+            <div className="grid grid-cols-2 gap-3 text-xs mb-4">
               <div>
-                <span className="text-slate-400 block font-medium">Valid From</span>
-                <span className="font-bold text-slate-800 dark:text-slate-200">Sep 29, 2026</span>
+                <span className="text-slate-400 block font-medium">Issuer CA</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">DigiCert TLS RSA SHA256</span>
               </div>
               <div>
-                <span className="text-slate-400 block font-medium">Expires On</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">Dec 22, 2026</span>
+                <span className="text-slate-400 block font-medium">Protocol</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">TLS 1.3 / ChaCha20</span>
               </div>
               <div>
-                <span className="text-slate-400 block font-medium">Signature</span>
-                <span className="font-bold text-slate-800 dark:text-slate-200 font-mono text-[11px] truncate block">
-                  SHA256withECDSA
-                </span>
+                <span className="text-slate-400 block font-medium">SANs Protected</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">*.sslguard.security</span>
               </div>
               <div>
                 <span className="text-slate-400 block font-medium">Key Strength</span>
@@ -176,7 +181,7 @@ export default function Login() {
           </div>
           <div className="flex items-center gap-2">
             <Bell className="w-4 h-4 text-blue-500 shrink-0" />
-            <span>30-Day Alerting</span>
+            <span>Gmail SMTP Alerting</span>
           </div>
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-indigo-500 shrink-0" />
@@ -223,7 +228,7 @@ export default function Login() {
               Sign in to <span className="text-gradient-primary">SSL Guard</span>
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-              Welcome back! Please enter your work credentials to access your security dashboard.
+              Welcome back! Please enter your credentials to access your security dashboard.
             </p>
           </div>
 
@@ -261,7 +266,11 @@ export default function Login() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => toast('Password recovery link dispatched to administrator email.', { icon: 'ℹ️' })}
+                    onClick={() => {
+                      setForgotEmail(email);
+                      setForgotSuccess(false);
+                      setForgotModalOpen(true);
+                    }}
                     className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-bold cursor-pointer"
                   >
                     Forgot password?
@@ -342,6 +351,111 @@ export default function Login() {
           <span>Enterprise-grade 256-bit TLS Handshake & Encrypted Session</span>
         </div>
       </div>
+
+      {/* Forgot Password Modal Dialog */}
+      <AnimatePresence>
+        {forgotModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200/80 dark:border-slate-800/80 relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600" />
+
+              <button
+                type="button"
+                onClick={() => setForgotModalOpen(false)}
+                className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg cursor-pointer transition-colors"
+                title="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 flex items-center justify-center">
+                  <Lock className="w-6 h-6" />
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Recover Password</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                    Enter the email registered to your SSLGuard account. We'll send a secure one-time password recovery link valid for 60 minutes.
+                  </p>
+                </div>
+
+                {forgotSuccess ? (
+                  <div className="space-y-4 py-2">
+                    <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="font-bold">Password Reset Link Dispatched!</p>
+                        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                          We sent a recovery email to <strong>{forgotEmail}</strong>. Click the link in that email to create a new password.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setForgotModalOpen(false)}
+                      className="w-full btn-primary h-11 text-sm font-bold cursor-pointer"
+                    >
+                      Done
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleForgotPasswordSubmit} className="space-y-4 pt-1">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5 cursor-pointer">
+                        Your Account Email
+                      </label>
+                      <div className="relative flex items-center">
+                        <div className="absolute left-3.5 z-10 text-slate-400 pointer-events-none flex items-center justify-center">
+                          <Mail className="w-4 h-4" />
+                        </div>
+                        <input
+                          type="email"
+                          required
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                          placeholder="name@company.com"
+                          className="input-field input-with-icon-left text-slate-900 dark:text-white font-medium text-sm h-11"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setForgotModalOpen(false)}
+                        className="w-1/2 py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={forgotLoading}
+                        className="w-1/2 btn-primary h-11 text-xs font-bold shadow-md shadow-blue-600/20 cursor-pointer"
+                      >
+                        {forgotLoading ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <span>Sending...</span>
+                          </div>
+                        ) : (
+                          <span>Send Link</span>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

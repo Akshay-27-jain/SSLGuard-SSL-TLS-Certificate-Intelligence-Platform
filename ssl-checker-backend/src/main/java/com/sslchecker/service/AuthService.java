@@ -13,17 +13,26 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
 @Service
 public class AuthService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final EmailService emailService;
 
-    public AuthService(UserRepository userRepository, @Lazy PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
+    public AuthService(UserRepository userRepository, 
+                       @Lazy PasswordEncoder passwordEncoder, 
+                       JwtTokenProvider jwtTokenProvider,
+                       EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.emailService = emailService;
     }
 
     @Override
@@ -83,5 +92,60 @@ public class AuthService implements UserDetailsService {
     public User getCurrentUser(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    }
+
+    /**
+     * Generates a 60-minute password reset token and sends HTML email via Gmail SMTP.
+     */
+    public void forgotPassword(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+        Optional<User> userOpt = userRepository.findByEmail(email.trim());
+        if (userOpt.isEmpty()) {
+            userOpt = userRepository.findByEmail(email.trim().toLowerCase());
+        }
+
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            String resetToken = UUID.randomUUID().toString();
+            user.setResetToken(resetToken);
+            user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
+            userRepository.save(user);
+
+            emailService.sendPasswordResetEmail(user.getEmail(), user.getFullName(), resetToken);
+        }
+    }
+
+    /**
+     * Validates reset token and sets the new BCrypt hashed password.
+     */
+    public void resetPassword(String token, String newPassword) {
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("Reset token is required");
+        }
+        User user = userRepository.findByResetToken(token.trim())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid or expired password reset link"));
+
+        if (user.getResetTokenExpiry() == null || user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Password reset link has expired. Please request a new one.");
+        }
+
+        if (newPassword == null || newPassword.length() < 6) {
+            throw new IllegalArgumentException("Password must be at least 6 characters");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        userRepository.save(user);
+    }
+
+    /**
+     * Dispatches a test verification email via configured Gmail SMTP.
+     */
+    public void sendTestEmail(String email) {
+        String recipient = (email != null && !email.isBlank()) ? email.trim() : "jainakshay0804@gmail.com";
+        emailService.sendTestEmail(recipient);
     }
 }

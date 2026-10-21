@@ -12,6 +12,7 @@ import Reports from './pages/Reports';
 import Alerts from './pages/Alerts';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ResetPassword from './pages/ResetPassword';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,6 +67,7 @@ export default function App() {
           {/* Public Auth Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Authenticated Dashboard Experience */}
           <Route element={<Layout darkMode={darkMode} toggleDark={toggleDark} />}>

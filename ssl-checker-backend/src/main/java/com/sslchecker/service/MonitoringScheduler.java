@@ -6,8 +6,6 @@ import com.sslchecker.repository.DomainRepository;
 import com.sslchecker.repository.SslCertificateRecordRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,14 +21,16 @@ public class MonitoringScheduler {
     private final DomainRepository domainRepository;
     private final SslCertificateRecordRepository certRepository;
     private final SslCheckerService sslCheckerService;
-    private final JavaMailSender mailSender;
+    private final EmailService emailService;
 
-    public MonitoringScheduler(DomainRepository domainRepository, SslCertificateRecordRepository certRepository,
-                               SslCheckerService sslCheckerService, JavaMailSender mailSender) {
+    public MonitoringScheduler(DomainRepository domainRepository, 
+                               SslCertificateRecordRepository certRepository,
+                               SslCheckerService sslCheckerService, 
+                               EmailService emailService) {
         this.domainRepository = domainRepository;
         this.certRepository = certRepository;
         this.sslCheckerService = sslCheckerService;
-        this.mailSender = mailSender;
+        this.emailService = emailService;
     }
 
     @Scheduled(cron = "${ssl.monitoring.cron:0 0 6 * * ?}")
@@ -53,10 +53,12 @@ public class MonitoringScheduler {
                 domainRepository.save(domain);
 
                 if (domain.isEmailAlertsEnabled() &&
+                    domain.getUser() != null &&
+                    domain.getUser().getEmail() != null &&
                     record.getDaysRemaining() != null &&
                     record.getDaysRemaining() <= domain.getAlertDaysBefore() &&
                     record.getDaysRemaining() >= 0) {
-                    sendExpiryAlert(domain, record.getDaysRemaining());
+                    sendExpiryAlert(domain, record);
                 }
 
                 checked++;
@@ -68,27 +70,17 @@ public class MonitoringScheduler {
         log.info("Daily monitoring complete. Checked: {}, Failed: {}", checked, failed);
     }
 
-    private void sendExpiryAlert(Domain domain, int daysRemaining) {
+    private void sendExpiryAlert(Domain domain, SslCertificateRecord record) {
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(domain.getUser().getEmail());
-            message.setSubject("⚠️ SSL Certificate Expiring: " + domain.getHostname());
-            message.setText(String.format(
-                "Hello %s,\n\n" +
-                "Your SSL certificate for %s is expiring in %d days.\n\n" +
-                "Please renew your certificate as soon as possible to avoid service disruption.\n\n" +
-                "Domain: %s\n" +
-                "Days Remaining: %d\n\n" +
-                "Best regards,\n" +
-                "SSL Checker Team",
+            emailService.sendSslExpiryAlert(
+                domain.getUser().getEmail(),
                 domain.getUser().getFullName(),
                 domain.getHostname(),
-                daysRemaining,
-                domain.getHostname(),
-                daysRemaining
-            ));
-            mailSender.send(message);
-            log.info("Expiry alert sent for domain: {}", domain.getHostname());
+                record.getDaysRemaining(),
+                record.getIssuer(),
+                record.getGrade()
+            );
+            log.info("HTML Expiry alert dispatched for domain: {}", domain.getHostname());
         } catch (Exception e) {
             log.error("Failed to send email alert for {}: {}", domain.getHostname(), e.getMessage());
         }
