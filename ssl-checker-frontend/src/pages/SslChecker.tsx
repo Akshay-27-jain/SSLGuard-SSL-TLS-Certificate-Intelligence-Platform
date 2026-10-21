@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Search, Shield, CheckCircle2, XCircle, AlertTriangle, Lock,
   Key, Calendar, Globe, List, ChevronDown, ChevronUp,
@@ -11,29 +12,27 @@ import { cn, formatDate, getStatusColor, getStatusLabel, sanitizeDomainInput } f
 import toast from 'react-hot-toast';
 
 export default function SslChecker() {
-  const [hostname, setHostname] = useState('');
-  const [port, setPort] = useState('443');
+  const [searchParams] = useSearchParams();
+  const domainParam = searchParams.get('domain');
+  const initialData = domainParam ? sanitizeDomainInput(domainParam) : null;
+
+  const [hostname, setHostname] = useState(() => initialData?.hostname || '');
+  const [port, setPort] = useState(() => String(initialData?.port || 443));
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SslCertificate | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showChain, setShowChain] = useState(false);
   const [copiedSan, setCopiedSan] = useState<string | null>(null);
 
-  const handleCheck = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { hostname: cleanHost, port: detectedPort } = sanitizeDomainInput(hostname);
-    if (!cleanHost) return;
-
+  const runAnalysis = async (targetHost: string, targetPort: number) => {
     setLoading(true);
     setError(null);
     setResult(null);
 
-    const checkPort = parseInt(port) || detectedPort || 443;
-
     try {
-      const res = await sslApi.checkSsl(cleanHost, checkPort);
+      const res = await sslApi.checkSsl(targetHost, targetPort);
       setResult(res.data);
-      toast.success(`SSL certificate analyzed for ${cleanHost}`);
+      toast.success(`SSL certificate analyzed for ${targetHost}`);
     } catch (err: any) {
       const msg = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to inspect SSL certificate';
       setError(msg);
@@ -41,6 +40,23 @@ export default function SslChecker() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const ranInitial = useRef(false);
+  useEffect(() => {
+    if (initialData?.hostname && !ranInitial.current) {
+      ranInitial.current = true;
+      runAnalysis(initialData.hostname, initialData.port || 443);
+    }
+  }, [initialData]);
+
+  const handleCheck = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { hostname: cleanHost, port: detectedPort } = sanitizeDomainInput(hostname);
+    if (!cleanHost) return;
+
+    const checkPort = parseInt(port) || detectedPort || 443;
+    runAnalysis(cleanHost, checkPort);
   };
 
   const copySan = (san: string) => {

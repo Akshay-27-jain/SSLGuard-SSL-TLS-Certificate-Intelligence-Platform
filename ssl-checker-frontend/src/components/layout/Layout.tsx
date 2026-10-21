@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { useAuthStore } from '../../store/authStore';
 import { Sun, Moon, Search, Bell, ChevronRight } from 'lucide-react';
+import { CommandPalette } from '../ui/CommandPalette';
 
 interface LayoutProps {
   darkMode: boolean;
@@ -20,7 +21,20 @@ const pageTitles: Record<string, { title: string; category: string }> = {
 export function Layout({ darkMode, toggleDark }: LayoutProps) {
   const location = useLocation();
   const { user } = useAuthStore();
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const current = pageTitles[location.pathname] || { title: 'Dashboard', category: 'Overview' };
+
+  // Listen for Ctrl+K / Cmd+K hotkey
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 mesh-gradient">
@@ -48,17 +62,18 @@ export function Layout({ darkMode, toggleDark }: LayoutProps) {
               <span>TLS Engine Active</span>
             </div>
 
-            {/* Quick SSL Scanner Shortcut */}
-            {location.pathname !== '/checker' && (
-              <Link
-                to="/checker"
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-800/90 hover:border-blue-500/40 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all shadow-xs"
-                title="Launch Instant SSL Scanner"
-              >
-                <Search className="w-3.5 h-3.5 text-blue-500" />
-                <span>Quick Scan</span>
-              </Link>
-            )}
+            {/* Quick SSL Scanner Shortcut / Command Palette Trigger */}
+            <button
+              onClick={() => setPaletteOpen(true)}
+              className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-800/90 hover:border-blue-500/40 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all shadow-xs cursor-pointer"
+              title="Launch Instant SSL Scanner (Ctrl+K)"
+            >
+              <Search className="w-3.5 h-3.5 text-blue-500" />
+              <span>Quick Scan</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-[10px] text-slate-400 dark:text-slate-400 font-mono">
+                ⌘K
+              </kbd>
+            </button>
 
             {/* Alerts Queue Link */}
             <Link
@@ -102,6 +117,14 @@ export function Layout({ darkMode, toggleDark }: LayoutProps) {
           </div>
         </main>
       </div>
+
+      {/* Google Stitch Command Palette */}
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        darkMode={darkMode}
+        toggleDark={toggleDark}
+      />
     </div>
   );
 }
